@@ -178,7 +178,7 @@ namespace MohawkGame2D
                 char c = value[i];
                 bool isValidNumber = c >= '0' && c <= '9';
                 bool isValidLetter = c >= 'a' && c <= 'f';
-                bool isInvalid = isValidNumber ^ isValidLetter;
+                bool isInvalid = !isValidNumber && !isValidLetter;
                 if (isInvalid)
                 {
                     string msg = $"Value contains non-hexadecimal character {c} ({value}).";

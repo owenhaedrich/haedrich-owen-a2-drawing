@@ -7,78 +7,136 @@ using System.Numerics;
 // The namespace your code is in.
 namespace MohawkGame2D
 {
-    /// <summary>
-    ///     Your game code goes inside this class!
-    /// </summary>
+    // Your game code goes inside this class!
     public class Game
     {
-        Vector2[] bugArray = [new Vector2(0,0), new Vector2(0, 200), new Vector2(0, 400)];
+        Vector2[] bugArray = [];
+        float bugScale = 0.7f;
         int bugSpeed = 1;
 
         Vector2 platePosition = new Vector2(200, 200);
-        int plateSize = 10;
+        Vector2 plateSize = new Vector2(100, 50);
         public void Setup()
         {
             Window.SetSize(400, 400); // Size is in pixels and ordered as (width, height)
             Window.TargetFPS = 60; // Aim to render 60 times a second
         }
 
-        /// <summary>
-        ///     Update runs every frame.
-        /// </summary>
+        // Update runs every frame.
         public void Update()
         {
             Window.ClearBackground(Color.OffWhite); // Reset the background
+            
+            // Chance to spawn new bug
+            if (Random.Integer(100) > 95)
+            {   
+                Vector2 newBug = new Vector2(0);
+                var bugSpawnDirection = Random.Integer(4);
+                if (bugSpawnDirection == 0) newBug = new Vector2(-100, Random.Integer(Window.Height));
+                if (bugSpawnDirection == 1) newBug = new Vector2(Window.Width + 100, Random.Integer(Window.Height));
+                if (bugSpawnDirection == 2) newBug = new Vector2(Random.Integer(Window.Width), -100);
+                if (bugSpawnDirection == 3) newBug = new Vector2(Random.Integer(Window.Width), Window.Height + 100);
+                
+                Array.Resize(ref bugArray, bugArray.Length + 1);
+                bugArray[bugArray.Length - 1] = newBug;
+            }
 
+            // Draw plate
+            Draw.FillColor = Color.LightGray;
+            Draw.Ellipse(platePosition, plateSize);
+            Draw.FillColor = Color.Gray;
+            Draw.Ellipse(platePosition, plateSize * 0.8f);
+
+            // Draw cake
+            Draw.FillColor = Color.Yellow;
+            Draw.Ellipse(platePosition, plateSize * 0.5f);
+            Draw.Ellipse(platePosition - Vector2.UnitY*9, plateSize * 0.5f);
+
+            // Update bugs
             for (int i = 0; i < bugArray.Length; i++)
             {
                 Vector2 bugPosition = bugArray[i];
-                Vector2 bugDirection = Vector2.Normalize(platePosition - bugPosition);
-                drawBug(bugPosition, bugDirection);
-                bugArray[i] = bugPosition + bugDirection * bugSpeed;
+                if (bugPosition != Vector2.NegativeInfinity)
+                {
+                    
+                    Vector2 bugDirection = Vector2.Normalize(platePosition - bugPosition);
+                    DrawBug(bugPosition, bugDirection);
+                    bugArray[i] = bugPosition + bugDirection * bugSpeed;
+                    bool onPlate = Vector2.Distance(bugArray[i], new Vector2(200, 200)) < 30;
+                    bool onMouse = Vector2.Distance(bugArray[i], Input.GetMousePosition()) < 30;
+                    if (onPlate || onMouse)
+                    {
+                        bugArray[i] = Vector2.NegativeInfinity;
+                    }
+                }
             }
+
         }
 
-        public void drawBug(Vector2 position, Vector2 direction)
+        // Draw a bug at the position, traveling in the direction
+        public void DrawBug(Vector2 position, Vector2 direction)
         {
-            var bugScale = 5;
-            
+            var angle = Math.Atan2(direction.Y, direction.X);
+
             Draw.FillColor = Color.Black;
 
             //Draw abdomen
-            Draw.Ellipse(position + (Vector2.UnitX * 5 * bugScale), new Vector2(10, 6) * bugScale);
+            Draw.Circle(position + direction * 2 * bugScale, 2 * bugScale);
+            Draw.Circle(position + direction * 4 * bugScale, 3 * bugScale);
+            Draw.Circle(position + direction * 5 * bugScale, 3 * bugScale);
+            Draw.Circle(position + direction * 6 * bugScale, 3 * bugScale);
+            Draw.Circle(position + direction * 8 * bugScale, 2 * bugScale);
 
             //Draw thorax
-            Draw.Ellipse(position + (Vector2.UnitX * 14 * bugScale), new Vector2(12, 2) * bugScale);
+            Draw.Capsule(position + direction * 7 * bugScale, position + direction * 17 * bugScale, bugScale);
 
             //Draw head
-            Draw.Circle(position + (Vector2.UnitX * 20 * bugScale), 3 * bugScale);
+            Draw.Circle(position + (direction * 20 * bugScale), 3 * bugScale);
 
             //Draw antennae
-            Draw.Line(position + (Vector2.UnitX * 20 * bugScale), position + new Vector2(28, 3) * bugScale);
-            Draw.Line(position + (Vector2.UnitX * 20 * bugScale), position + new Vector2(28, -3) * bugScale);
-            Draw.Line(position + new Vector2(28, 3) * bugScale, position + new Vector2(30, 3) * bugScale);
-            Draw.Line(position + new Vector2(28, -3) * bugScale, position + new Vector2(30, -3) * bugScale);
+            Vector2[] a1 = [(Vector2.UnitX * 20 * bugScale), new Vector2(28, 3) * bugScale, new Vector2(30, 3) * bugScale];
+            Vector2[] a2 = [(Vector2.UnitX * 20 * bugScale), new Vector2(28, -3) * bugScale, new Vector2(30, -3) * bugScale];
+            for (int i = 0; i < 3; i++)
+            {
+                a1[i] = position + RotateVector(a1[i], angle);
+                a2[i] = position + RotateVector(a2[i], angle);
+            }
+            Draw.PolyLine(a1);
+            Draw.PolyLine(a2);
 
             //Draw front legs
-            Draw.Line(position + (Vector2.UnitX * 14 * bugScale), position + new Vector2(26, 7) * bugScale);
-            Draw.Line(position + (Vector2.UnitX * 14 * bugScale), position + new Vector2(26, -7) * bugScale);
+            Draw.Line(position + (direction * 14 * bugScale), position + RotateVector(new Vector2(26, 7) * bugScale, angle));
+            Draw.Line(position + (direction * 14 * bugScale), position + RotateVector(new Vector2(26, -7) * bugScale, angle));
 
             //Draw middle legs
-            Draw.Line(position + (Vector2.UnitX * 14 * bugScale), position + new Vector2(14, 3) * bugScale);
-            Draw.Line(position + (Vector2.UnitX * 14 * bugScale), position + new Vector2(14, -3) * bugScale);
-            Draw.Line(position + new Vector2(14, 3) * bugScale, position + new Vector2(16, 5) * bugScale);
-            Draw.Line(position + new Vector2(14, -3) * bugScale, position + new Vector2(16, -5) * bugScale);
-            Draw.Line(position + new Vector2(16, 5) * bugScale, position + new Vector2(12, 9) * bugScale);
-            Draw.Line(position + new Vector2(16, -5) * bugScale, position + new Vector2(12, -9) * bugScale);
+            Vector2[] ml1 = [(Vector2.UnitX * 14 * bugScale),  new Vector2(14, 3) * bugScale,  new Vector2(16, 5) * bugScale,  new Vector2(12, 9) * bugScale];
+            Vector2[] ml2 = [(Vector2.UnitX * 14 * bugScale),  new Vector2(14, -3) * bugScale,  new Vector2(16, -5) * bugScale,  new Vector2(12, -9) * bugScale];
+            for (int i = 0; i < 4; i++)
+            {
+                ml1[i] = position + RotateVector(ml1[i], angle);
+                ml2[i] = position + RotateVector(ml2[i], angle);
+            }
+            Draw.PolyLine(ml1);
+            Draw.PolyLine(ml2);
 
             //Draw back legs
-            Draw.Line(position + (Vector2.UnitX * 10 * bugScale), position + new Vector2(9, 3) * bugScale);
-            Draw.Line(position + (Vector2.UnitX * 10 * bugScale), position + new Vector2(9, -3) * bugScale);
-            Draw.Line(position + new Vector2(9, 3) * bugScale, position + new Vector2(0, 7) * bugScale);
-            Draw.Line(position + new Vector2(9, -3) * bugScale, position + new Vector2(0, -7) * bugScale);
+            Vector2[] b1 = [(Vector2.UnitX * 10 * bugScale), new Vector2(9, 3) * bugScale, new Vector2(0, 7) * bugScale];
+            Vector2[] b2 = [(Vector2.UnitX * 10 * bugScale), new Vector2(9, -3) * bugScale, new Vector2(0, -7) * bugScale];
+            for (int i = 0; i < 3; i++)
+            {
+                b1[i] = position + RotateVector(b1[i], angle);
+                b2[i] = position + RotateVector(b2[i], angle);
+            }
+            Draw.PolyLine(b1);
+            Draw.PolyLine(b2);
         }
 
+        public Vector2 RotateVector(Vector2 vector, double angle)
+        {
+            float x = (float) (vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle));
+            float y = (float) (vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
+            return new Vector2(x, y);
+        }
     }
 
 }
