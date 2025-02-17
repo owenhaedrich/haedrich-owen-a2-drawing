@@ -8,6 +8,13 @@ namespace MohawkGame2D
     // Your game code goes inside this class!
     public class Game
     {
+
+        Color dirtBrown = new Color("8B4513");
+        Color grassGreen = new Color("008013");
+        Color pancakeBrown = new Color("ffff88");
+        Color pancakeEdgeBrown = new Color("775511");
+
+        Vector2[] grassArray = [new Vector2(30, 50), new Vector2(310, 310), new Vector2(270, 90), new Vector2(100, 200), new Vector2(200, 300)]; //Grass is stored as the location of the roots
         Vector2[] bugArray = [];
         float bugScale = 0.7f;
         int bugSpeed = 1;
@@ -23,11 +30,11 @@ namespace MohawkGame2D
         // Update runs every frame.
         public void Update()
         {
-            Window.ClearBackground(Color.OffWhite); // Reset the background
-            
+            Window.ClearBackground(dirtBrown); //Reset the background
+
             // Chance to spawn new bug
             if (Random.Integer(100) > 95)
-            {   
+            {
                 Vector2 newBug = new Vector2(0);
 
                 // Choose a random side of the screen to spawn the bug
@@ -42,16 +49,33 @@ namespace MohawkGame2D
                 bugArray[bugArray.Length - 1] = newBug;
             }
 
+            // Draw thick lines for plate, pancake and grass
+            Draw.LineSize = 2;
+
             // Draw plate
             Draw.FillColor = Color.LightGray;
+            Draw.LineColor = Color.Gray;
             Draw.Ellipse(platePosition, plateSize);
             Draw.FillColor = Color.Gray;
             Draw.Ellipse(platePosition, plateSize * 0.8f);
 
-            // Draw cake
-            Draw.FillColor = Color.Yellow;
-            Draw.Ellipse(platePosition, plateSize * 0.5f);
-            Draw.Ellipse(platePosition - Vector2.UnitY*9, plateSize * 0.5f);
+            // Draw pancakes
+            Draw.FillColor = pancakeBrown;
+            Draw.LineColor = pancakeEdgeBrown;
+            Draw.LineSize = 2;
+            Draw.Ellipse(platePosition - Vector2.UnitX * 5, plateSize * 0.5f);
+            Draw.Ellipse(platePosition + new Vector2(7, -1), plateSize * 0.5f);
+            Draw.Ellipse(platePosition - Vector2.UnitY * 8, plateSize * 0.5f);
+            Draw.LineSize = 1;
+
+            // Draw grass at all root positions
+            foreach (Vector2 grass in grassArray)
+            {
+                DrawGrass(grass);
+            }
+
+            // Draw thin lines for bugs
+            Draw.LineSize = 1;
 
             // Update bugs
             for (int i = 0; i < bugArray.Length; i++)
@@ -83,6 +107,7 @@ namespace MohawkGame2D
             var angle = Math.Atan2(direction.Y, direction.X);
 
             Draw.FillColor = Color.Black;
+            Draw.LineColor = Color.Black;
 
             //Draw abdomen
             Draw.Circle(position + direction * 2 * bugScale, 2 * bugScale);
@@ -113,8 +138,8 @@ namespace MohawkGame2D
             Draw.Line(position + (direction * 14 * bugScale), position + RotateVector(new Vector2(26, -7) * bugScale, angle));
 
             //Draw middle legs
-            Vector2[] ml1 = [(Vector2.UnitX * 14 * bugScale),  new Vector2(14, 3) * bugScale,  new Vector2(16, 5) * bugScale,  new Vector2(12, 9) * bugScale];
-            Vector2[] ml2 = [(Vector2.UnitX * 14 * bugScale),  new Vector2(14, -3) * bugScale,  new Vector2(16, -5) * bugScale,  new Vector2(12, -9) * bugScale];
+            Vector2[] ml1 = [(Vector2.UnitX * 14 * bugScale), new Vector2(14, 3) * bugScale, new Vector2(16, 5) * bugScale, new Vector2(12, 9) * bugScale];
+            Vector2[] ml2 = [(Vector2.UnitX * 14 * bugScale), new Vector2(14, -3) * bugScale, new Vector2(16, -5) * bugScale, new Vector2(12, -9) * bugScale];
             for (int i = 0; i < 4; i++)
             {
                 ml1[i] = position + RotateVector(ml1[i], angle);
@@ -135,11 +160,25 @@ namespace MohawkGame2D
             Draw.PolyLine(b2);
         }
 
+        public void DrawGrass(Vector2 position)
+        {
+            Draw.LineColor = grassGreen;
+            Draw.LineSize = 2;
+            Draw.Line(position, position + new Vector2(0, -50));
+            Draw.Line(position, position + new Vector2(10, -50));
+            Draw.Line(position, position + new Vector2(-13, -40));
+            Draw.Line(position, position + new Vector2(13, -40));
+            Draw.Line(position, position + new Vector2(-10, -50));
+            Draw.Line(position + new Vector2(-3, 0), position + new Vector2(-17, -50));
+            Draw.Line(position + new Vector2(1, 0), position + new Vector2(30, -30));
+            Draw.LineSize = 1;
+        }
+
         // Rotate a vector by an angle from the x-axis
         public Vector2 RotateVector(Vector2 vector, double angle)
         {
-            float x = (float) (vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle));
-            float y = (float) (vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
+            float x = (float)(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle));
+            float y = (float)(vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
             return new Vector2(x, y);
         }
     }
