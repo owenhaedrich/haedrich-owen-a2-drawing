@@ -1,7 +1,5 @@
 ﻿// Include the namespaces (code libraries) you need below.
 using System;
-using System.Drawing;
-using System.Linq;
 using System.Numerics;
 
 // The namespace your code is in.
@@ -31,12 +29,15 @@ namespace MohawkGame2D
             if (Random.Integer(100) > 95)
             {   
                 Vector2 newBug = new Vector2(0);
+
+                // Choose a random side of the screen to spawn the bug
                 var bugSpawnDirection = Random.Integer(4);
                 if (bugSpawnDirection == 0) newBug = new Vector2(-100, Random.Integer(Window.Height));
                 if (bugSpawnDirection == 1) newBug = new Vector2(Window.Width + 100, Random.Integer(Window.Height));
                 if (bugSpawnDirection == 2) newBug = new Vector2(Random.Integer(Window.Width), -100);
                 if (bugSpawnDirection == 3) newBug = new Vector2(Random.Integer(Window.Width), Window.Height + 100);
-                
+
+                // Make the array bigger and add the new bug
                 Array.Resize(ref bugArray, bugArray.Length + 1);
                 bugArray[bugArray.Length - 1] = newBug;
             }
@@ -55,13 +56,16 @@ namespace MohawkGame2D
             // Update bugs
             for (int i = 0; i < bugArray.Length; i++)
             {
+                // Get the bug's position and try to move it towards the plate
+                // Bugs at negative infinity are dead and don't move
                 Vector2 bugPosition = bugArray[i];
                 if (bugPosition != Vector2.NegativeInfinity)
                 {
-                    
                     Vector2 bugDirection = Vector2.Normalize(platePosition - bugPosition);
                     DrawBug(bugPosition, bugDirection);
                     bugArray[i] = bugPosition + bugDirection * bugSpeed;
+
+                    // If the bug is close to the plate or the mouse, send it to negative infinity
                     bool onPlate = Vector2.Distance(bugArray[i], new Vector2(200, 200)) < 30;
                     bool onMouse = Vector2.Distance(bugArray[i], Input.GetMousePosition()) < 30;
                     if (onPlate || onMouse)
@@ -131,6 +135,7 @@ namespace MohawkGame2D
             Draw.PolyLine(b2);
         }
 
+        // Rotate a vector by an angle from the x-axis
         public Vector2 RotateVector(Vector2 vector, double angle)
         {
             float x = (float) (vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle));
