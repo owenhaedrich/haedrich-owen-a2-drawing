@@ -160,6 +160,8 @@ namespace MohawkGame2D
             Draw.PolyLine(b2);
         }
 
+
+        //Drawa clump of grass at the position
         public void DrawGrass(Vector2 position)
         {
             Draw.LineColor = grassGreen;
